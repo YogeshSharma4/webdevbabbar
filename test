@@ -1,0 +1,202 @@
+package com.codewithyogesh.streams;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class StreamsDemo {
+
+    public static void show() {
+        List<Movies> moviesList = List.of(
+                new Movies("a", 10, Genre.THRILLER),
+                new Movies("c", 20, Genre.COMEDY),
+                new Movies("d",30, Genre.ACTION),
+                new Movies("e",40, Genre.ACTION)
+        );
+        /*
+        //Imperative programming
+        int count = 0;
+        for(var movies:moviesList)
+            if(movies.getLikes()>11) count++;
+        System.out.println(count);
+
+        //Declarative(Functional) programming
+        Predicate<Movies> isPopular = movie -> movie.getLikes()>10;
+        var count2 = moviesList.stream()
+                .filter(movies -> movies.getLikes() >10)
+              //  .filter(isPopular)
+                .count();
+        System.out.println(count2);
+
+        moviesList.stream()
+                .map(movie -> movie.getName())
+                .forEach(name -> System.out.println(name));
+        */
+        // Pagination concept // supoose we have 1000 movies.
+        // 10 movies per page
+        // 3rd Page
+        // skip(20) = skip((pageNo -1)*PageSize)
+        // limit(10) = limit(PageSize)
+
+        /*
+        moviesList.stream()
+                .skip(20)
+                .limit(10)
+                .forEach(x -> System.out.println(x));
+
+        */
+
+        //TakeWhile Predicate as long as condition is true it will take object( it will stop as soon as condition is fails
+        // filter applies on all the objects but takeWhile stop as soon as condition fails
+        //DropWhile is opposite of takeWhile
+
+        //Sorted Demo..
+
+        /*
+        moviesList.stream()
+             //   .sorted((a,b) -> a.getName().compareTo(b.getName()))
+             //   .sorted(Comparator.comparing(Movies::getName))
+               // .sorted(Comparator.comparing(Movies::getName).reversed()) for reversed order
+                .sorted(Comparator.comparing(Movies::getName).thenComparing(Movies::getLikes)) //For comparing with basis of two options
+                        .forEach(movie -> System.out.println(movie));
+        */
+
+        //Distinct Demo
+
+
+        /*
+        moviesList.stream()
+                .map(Movies::getLikes)
+                .distinct()
+                .forEach(System.out::println);
+
+        */
+
+
+        //Peeking Value
+        /*
+        moviesList.stream()
+                .filter(movie -> movie.getLikes()>10)
+                .peek(movies -> System.out.println("Fillter "+movies.getName()))
+                .map(Movies::getName)
+                .peek(str -> System.out.println("Mapped "+str))
+                .forEach(System.out::println);
+        */
+
+        // Reducers  count() , anyMatch(Predicate) , allMatch(Predicate), noneMatch(Predicate), FindFirst(), FindAny()
+        // max(comprator) , min(Comprator) we cannot call any other operation after reducers.
+
+        // to Find Max likes of a movie
+
+        /*
+        Movies result = moviesList.stream()
+                .max(Comparator.comparing(Movies::getLikes))
+                .get();
+        System.out.println(result);
+
+        */
+
+
+        // Reducing a Stream
+
+        // Adding all the likes
+
+        /*
+       var result= moviesList.stream()
+                .map(Movies::getLikes)
+                .reduce((a,b) -> a+b);
+        System.out.println(result.orElse(0));
+
+         */
+
+        //Collectors
+
+        var result = moviesList.stream()
+                .filter(movie -> movie.getLikes()>10)
+                .collect(Collectors.toList());
+
+        var result2 =moviesList.stream()
+                .filter(movie -> movie.getLikes()>10)
+                .collect(Collectors.toSet());
+
+        var map =moviesList.stream()
+                .filter(movie -> movie.getLikes()>10)
+                .collect(Collectors.toMap(Movies::getName,Movies::getLikes));
+
+        var mapTweak =moviesList.stream()
+                .filter(movie -> movie.getLikes()>10)
+                .collect(Collectors.toMap(Movies::getName, m -> m));
+        //Same as Above
+        mapTweak =moviesList.stream()
+                .filter(movie -> movie.getLikes()>10)
+                .collect(Collectors.toMap(Movies::getName, Function.identity()));
+
+        //System.out.println(mapTweak);
+
+
+
+//        var result =moviesList.stream()
+//                .filter(movie -> movie.getLikes()>10)
+//                .collect(Collectors.summingInt(Movies::getLikes));
+//
+//        var summary =moviesList.stream()
+//                .filter(movie -> movie.getLikes()>10)
+//                .collect(Collectors.summarizingInt(Movies::getLikes));
+       // System.out.println(summary);
+
+        // JOining values using a delimiter
+
+        /*
+        var joinDemo =moviesList.stream()
+                .filter(movie -> movie.getLikes()>10)
+                .map(Movies::getName)
+                .collect(Collectors.joining(", "));
+        System.out.println(joinDemo);
+
+        */
+        // Group Movies ny Their GEnre
+
+        Map<Genre, List<Movies>> collect = moviesList.stream()
+                .collect(Collectors.groupingBy(Movies::getGenre));
+
+        Map<Genre, Set<Movies>> collect1 = moviesList.stream()
+                .collect(Collectors.groupingBy(Movies::getGenre, Collectors.toSet()));
+
+        var gernreGrouping4 = moviesList.stream()
+                .collect(Collectors.groupingBy(Movies::getGenre,Collectors.counting()));
+
+       var genreGroupin2 = moviesList.stream()
+                       .collect(Collectors.groupingBy(Movies::getGenre,Collectors.mapping(Movies::getName,Collectors.joining(","))));
+
+      //  System.out.println(gernreGrouping4);
+
+        //Partiotioning BY demo
+
+        moviesList.stream()
+                .collect(Collectors.partitioningBy(m -> m.getLikes() > 10, Collectors.mapping(Movies::getName, Collectors.joining(", "))))
+        System.out.println(PartioningDemo);
+    }
+
+    public static void flatMapDemo(){
+        // Stream<List<x> --- Stream<x>
+        /*
+        var stream = Stream.of(List.of(1,2,3),List.of(4,5,6));
+        stream
+                .forEach(x -> System.out.println(x));
+
+         */
+
+        var stream = Stream.of(List.of(1,2,3),List.of(4,5,6));
+        stream
+                .flatMap(x -> x.stream())
+                .forEach(x -> System.out.println(x));
+    }
+
+    public static void main(String[] args) {
+        show();
+        //flatMapDemo();
+    }
+}
